@@ -37,6 +37,8 @@ fn main() -> Result<(), String> {
     }
     Ok(())
 }
+
+// generated using chatgpt for testing
 #[cfg(test)]
 mod tests {
     use super::*;
