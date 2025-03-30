@@ -8,17 +8,32 @@ use evaluate::Evaluator;
 mod hands;
 
 use std::cmp::Ordering;
+use std::io::{self, Write, stdout};
 
 fn main() -> Result<(), String> {
     println!("welcome to the poker hand comparison machine!");
+
     let parser = Parser::new();
     let mut eval = Evaluator::new();
-    let (hand1, hand1rankscore) = match parser.clone().parse("4C 8D 4H 4S 8H".to_string()) {
+
+    let mut buffer = String::new();
+    println!(
+        "== \ncards:\nranks = 2 - 10, J, Q, K, A\nsuits = D, H, C, S\n==
+    "
+    );
+    print!("Enter poker hand -> [rank][suit]: ");
+    stdout().flush();
+    io::stdin()
+        .read_line(&mut buffer)
+        .expect("couldnt read input, sorry!");
+
+    let (hand1, hand1rankscore) = match parser.clone().parse(buffer) {
         Ok((cards, score)) => (cards, score),
         Err(e) => return Err(e),
     };
 
     eval.evaluate(hand1);
+
     /* let (hand2, hand2rankscore) = match parser.clone().parse("10D JD QD KD AD".to_string()) {
            Ok((cards, score)) => (cards, score),
            Err(e) => return Err(e),
