@@ -25,7 +25,7 @@ impl Evaluator {
             suit_bits |= card & 0xF; // extract lower 4 bits to get suit
         }
         match (
-            (rank_bits >> rank_bits.trailing_zeros()) == 0x1F, // remove all trailing zeros and check if all values are set to 1
+            ((rank_bits >> rank_bits.trailing_zeros()) == 0x1F || rank_bits == 0x100F), // remove all trailing zeros and check if all values are set to 1 / check for ace straight
             suit_bits.count_ones() == 1, // check if there's only one suit bit set to 1
         ) {
             (true, true) if rank_bits.trailing_zeros() == 8 => Hands::RoyalFlush,
