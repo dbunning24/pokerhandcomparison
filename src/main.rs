@@ -13,17 +13,19 @@ fn main() -> Result<(), String> {
     println!("welcome to the poker hand comparison machine!");
     let parser = Parser::new();
     let mut eval = Evaluator::new();
-    let (hand1, hand1rankscore) = match parser.clone().parse("2C 2D 2H 2S 8H".to_string()) {
+    let (hand1, hand1rankscore) = match parser.clone().parse("4C 8D 4H 4S 8H".to_string()) {
         Ok((cards, score)) => (cards, score),
         Err(e) => return Err(e),
     };
 
-    let (hand2, hand2rankscore) = match parser.clone().parse("7D 8C 9S 10C JC".to_string()) {
-        Ok((cards, score)) => (cards, score),
-        Err(e) => return Err(e),
-    };
+    eval.evaluate(hand1);
+    /* let (hand2, hand2rankscore) = match parser.clone().parse("10D JD QD KD AD".to_string()) {
+           Ok((cards, score)) => (cards, score),
+           Err(e) => return Err(e),
+       };
+    */
 
-    let score1 = eval.evaluate(hand1);
+    /*
     let score2 = eval.evaluate(hand2);
 
     match score1.cmp(&score2) {
@@ -34,7 +36,7 @@ fn main() -> Result<(), String> {
         },
         Ordering::Greater => println!("hand 1 wins!"),
         Ordering::Less => println!("hand 2 wins!"),
-    }
+    } */
     Ok(())
 }
 
@@ -55,7 +57,7 @@ mod tests {
     #[test]
     fn test_royal_flush_hand() {
         let (parser, mut eval) = setup();
-        let (hand, _) = parser.clone().parse("10D JD QD KD AD".to_string()).unwrap();
+        let (hand, _) = parser.clone().parse("10D JD QD KD AD".to_string()).unwrap(); // Royal flush with the same suit (Diamonds)
         let score = eval.evaluate(hand);
         assert_eq!(score, 9); // Assuming '9' is the score for a royal flush
     }
@@ -64,27 +66,81 @@ mod tests {
     #[test]
     fn test_straight_flush_hand() {
         let (parser, mut eval) = setup();
-        let (hand, _) = parser.clone().parse("8D 9D 10D JD QD".to_string()).unwrap();
+        let (hand, _) = parser.clone().parse("8D 9D 10D JD QD".to_string()).unwrap(); // Straight flush (Diamonds)
         let score = eval.evaluate(hand);
         assert_eq!(score, 8); // Assuming '8' is the score for a straight flush
     }
 
-    // Straight Test
+    // Four of a Kind Test
     #[test]
-    fn test_straight_hand() {
+    fn test_four_of_a_kind_hand() {
         let (parser, mut eval) = setup();
-        let (hand, _) = parser.clone().parse("8D 9C 10H JD QD".to_string()).unwrap();
+        let (hand, _) = parser.clone().parse("9D 9H 9S 9C 3D".to_string()).unwrap(); // Four of a kind (9s)
         let score = eval.evaluate(hand);
-        assert_eq!(score, 4); // Assuming '4' is the score for a straight
+        assert_eq!(score, 7); // Assuming '7' is the score for four of a kind
+    }
+
+    // Full House Test
+    #[test]
+    fn test_full_house_hand() {
+        let (parser, mut eval) = setup();
+        let (hand, _) = parser.clone().parse("9D 9H 9S 3C 3D".to_string()).unwrap(); // Full house (9s over 3s)
+        let score = eval.evaluate(hand);
+        assert_eq!(score, 6); // Assuming '6' is the score for a full house
     }
 
     // Flush Test
     #[test]
     fn test_flush_hand() {
         let (parser, mut eval) = setup();
-        let (hand, _) = parser.clone().parse("2D 4D 6D 8D 10D".to_string()).unwrap();
+        let (hand, _) = parser.clone().parse("2D 4D 6D 8D 10D".to_string()).unwrap(); // Flush (Diamonds)
         let score = eval.evaluate(hand);
         assert_eq!(score, 5); // Assuming '5' is the score for a flush
+    }
+
+    // Straight Test
+    #[test]
+    fn test_straight_hand() {
+        let (parser, mut eval) = setup();
+        let (hand, _) = parser.clone().parse("8D 9C 10H JD QD".to_string()).unwrap(); // Straight (different suits)
+        let score = eval.evaluate(hand);
+        assert_eq!(score, 4); // Assuming '4' is the score for a straight
+    }
+
+    // Three of a Kind Test
+    #[test]
+    fn test_three_of_a_kind_hand() {
+        let (parser, mut eval) = setup();
+        let (hand, _) = parser.clone().parse("9D 9H 9S 3C 5D".to_string()).unwrap(); // Three of a kind (9s)
+        let score = eval.evaluate(hand);
+        assert_eq!(score, 3); // Assuming '3' is the score for three of a kind
+    }
+
+    // Two Pair Test
+    #[test]
+    fn test_two_pair_hand() {
+        let (parser, mut eval) = setup();
+        let (hand, _) = parser.clone().parse("9D 9H 3S 3C 5D".to_string()).unwrap(); // Two pair (9s and 3s)
+        let score = eval.evaluate(hand);
+        assert_eq!(score, 2); // Assuming '2' is the score for two pair
+    }
+
+    // One Pair Test
+    #[test]
+    fn test_one_pair_hand() {
+        let (parser, mut eval) = setup();
+        let (hand, _) = parser.clone().parse("9D 9H 3S 5C 7D".to_string()).unwrap(); // One pair (9s)
+        let score = eval.evaluate(hand);
+        assert_eq!(score, 1); // Assuming '1' is the score for one pair
+    }
+
+    // High Card Test
+    #[test]
+    fn test_high_card_hand() {
+        let (parser, mut eval) = setup();
+        let (hand, _) = parser.clone().parse("2D 4C 6H 8S KH".to_string()).unwrap(); // High card hand (king is highest)
+        let score = eval.evaluate(hand);
+        assert_eq!(score, 0); // Assuming '0' is the score for high card
     }
 
     // Edge Case: Invalid Hand (Not Enough Cards)
@@ -103,24 +159,6 @@ mod tests {
         assert!(result.is_err());
     }
 
-    // Edge Case: Invalid Hand (Unsorted Cards)
-    #[test]
-    fn test_unsorted_flush_hand() {
-        let (parser, mut eval) = setup();
-        let (hand, _) = parser.clone().parse("2D 6D 10D 8D 4D".to_string()).unwrap();
-        let score = eval.evaluate(hand);
-        assert_eq!(score, 5); // Still a flush
-    }
-
-    // Edge Case: High Card (No Special Hand)
-    #[test]
-    fn test_high_card_hand() {
-        let (parser, mut eval) = setup();
-        let (hand, _) = parser.clone().parse("2D 4C 6H 8S KH".to_string()).unwrap();
-        let score = eval.evaluate(hand);
-        assert_eq!(score, 0); // Assuming '0' is the score for high card
-    }
-
     // Edge Case: Two Consecutive Same Cards (Invalid)
     #[test]
     fn test_two_consecutive_same_cards() {
@@ -129,16 +167,16 @@ mod tests {
         assert!(result.is_err());
     }
 
-    // Edge Case: Same Hand in Different Order (Straight)
+    // Edge Case: Unsorted Cards (Flush)
     #[test]
-    fn test_straight_hand_different_order() {
+    fn test_unsorted_flush_hand() {
         let (parser, mut eval) = setup();
-        let (hand, _) = parser.clone().parse("JD 9C 8D QD 10H".to_string()).unwrap(); // Same cards as the straight hand, but in different order
+        let (hand, _) = parser.clone().parse("2D 6D 10D 8D 4D".to_string()).unwrap(); // Flush with unsorted cards
         let score = eval.evaluate(hand);
-        assert_eq!(score, 4); // Should still be a straight
+        assert_eq!(score, 5); // Should still be a flush
     }
 
-    // Edge Case: Mixed Suits but Still a Straight
+    // Edge Case: Straight with Mixed Suits
     #[test]
     fn test_straight_mixed_suits() {
         let (parser, mut eval) = setup();

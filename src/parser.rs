@@ -21,7 +21,7 @@ impl Parser {
         if split.len() != 5 {
             return Err(format!("incorrect amount of cards: {}", split.len()));
         }
-        let mut cards: Vec<i32> = vec![]; // first 4 bytes = suit, last 13 = rank
+        let mut cards: Vec<i32> = Vec::new(); // first 4 bytes = suit, last 13 = rank
         let mut rank_total: i8 = 0;
         for card in split.into_iter() {
             match self.get_hand_pos(card) {
